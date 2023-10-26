@@ -3,6 +3,7 @@ const dataAnalysis = async () => {
     let response;
     let id;
     let data;
+    let maximum;
 
     try {
       response = await fetch(
@@ -38,7 +39,7 @@ const dataAnalysis = async () => {
       return count;
     });
 
-    const maximum = Math.max(...frequencyCount);
+    maximum = Math.max(...frequencyCount);
 
     let frequent = [];
 
@@ -93,7 +94,7 @@ const dataAnalysis = async () => {
   // using for loop to post as two requests are to be made
   for (i = 0; i < frequentWords.length; i++) {
     responseData = await postData(frequentWords[i]);
-    console.log(`Response for '${frequentWords[i]}':`);
+    console.log(`Response for answer '${frequentWords[i]}'(${maximum}):`);
     console.log(responseData);
   }
 };
