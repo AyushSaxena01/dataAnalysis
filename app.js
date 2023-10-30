@@ -1,65 +1,67 @@
 const dataAnalysis = async () => {
+  let maxRetries=2;
   const fetchData = async () => {
     let response;
     let id;
     let data;
-    let maximum;
 
     try {
+      ;
       response = await fetch(
         "https://one00x-data-analysis.onrender.com/assignment?email=ayushsaxena0399@gmail.com"
       );
       id = response.headers.get("x-assignment-id"); // assignment_id
       data = await response.json(); // data - array of phrases
     } catch (error) {
+      if(maxRetries > 0 && response.status === 500){
+      console.log('Retrying...');
+      maxRetries--
+      fetchData();
+    } else{
       console.log(`Error occured in fetchData(): ${error}`);
     }
+      
+    }
+   
 
     return [id, data]; // fetch() returns an array containing the assignment_id and data
   };
 
   const dataArray = await fetchData(); // storing the returned array in dataArray
   const assignment_id = dataArray[0];  // storing the assignment_id
+  let dataMap=new Map();
   let count = 0;
 
-  // function processData() - takes the dataArray for processing. 
-  // array frequencyCount - contains the frequency count of each element 
-  // const maximum - containts the max frequency count
-  // array frequent - containts all the sorted elements with highest frequency (repeated elements too)
-  // array words - contains unique words with highest frequency 
+  // function processData() - takes the dataArray for processing, generates a Map (dataMap) from the received data containing words as keys and frequency as values. 
 
   const processData = (data) => {
-    let frequencyCount = data.map((element) => {
-      count = 0;
-      data.forEach((item) => {
-        if (element === item) {
-          count++;
-        }
-      });
-      return count;
-    });
+    data.forEach((element)=>{
 
-    maximum = Math.max(...frequencyCount);
+      if(!dataMap.has(element)){
 
-    let frequent = [];
+        dataMap.set(element,1);
 
-    frequencyCount.forEach((element, i) => {
-      if (element === maximum) {
-        frequent.push(data[i]);
       }
-    });
-    frequent.sort();
+      else if(dataMap.has(element)){
+        dataMap.set(element, dataMap.get(element)+1)
+      }
+    })
+
+    count = 0;
+
+    dataMap.forEach((value, key)=>{
+       count = (value>=count) ? value : count;
+    })
 
     let words = [];
 
-    for (i = 0; i < frequent.length - 2; i++) {
-      if (words.length === 0) {
-        words.push(frequent[0]);
-      }
-      if (frequent[i] !== frequent[i + 1]) {
-        words.push(frequent[i + 1]);
-      }
-    }
+    dataMap.forEach((value, key)=>{
+       if(value === count){
+        words.push(key);
+       } 
+     })
+
+    console.log(words)
     return words;
   };
 
@@ -94,7 +96,7 @@ const dataAnalysis = async () => {
   // using for loop to post as two requests are to be made
   for (i = 0; i < frequentWords.length; i++) {
     responseData = await postData(frequentWords[i]);
-    console.log(`Response for answer '${frequentWords[i]}'(${maximum}):`);
+    console.log(`Response for answer '${frequentWords[i]}'(${count}):`);
     console.log(responseData);
   }
 };
